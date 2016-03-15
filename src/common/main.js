@@ -62,7 +62,7 @@ function updateEditor(err, data, res){
 			var keyVal = h.split(':');
 
 			if(keyVal[0].toLowerCase().indexOf('x-riak') === 0){
-				riak_headers[keyVal[0].toLowerCase()] = keyVal[1];
+				riak_headers[keyVal[0].toLowerCase()] = res.getResponseHeader(keyVal[0]);
 			}
 		});
 
