@@ -1,12 +1,14 @@
 {
-  "kango_version": "1.0.1 final", 
-  "content_scripts": [
-    "main.js"
-  ], 
-  "description": "Riak JSON editor", 
-  "creator": "z6sic6z", 
-  "version": "0.2.3", 
-  "options_page": "options.html", 
-  "id": "{0F373757-E260-4835-8A41-420ACFB2BAFA}", 
-  "name": "Riak JSON editor"
+    "content_scripts": [
+        "main.js"
+    ], 
+    "description": "Riak JSON editor fixed (original https://chrome.google.com/webstore/detail/riak-json-editor/eeponikjeljlngckgbekknkoncmljfbf)", 
+    "creator": "z6sic6z", 
+    "framework_version": "1.7.9 e39b6ff2fcc8", 
+    "version": "0.9.2", 
+    "options_page": "options.html", 
+    "framework_package_id": "dev", 
+    "homepage": "https://github.com/romulka", 
+    "id": "{0F373757-E260-4835-8A41-420ACFB2BAFA}", 
+    "name": "Riak JSON editor (fixed)"
 }

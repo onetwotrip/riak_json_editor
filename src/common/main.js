@@ -5,10 +5,7 @@
 // @include ftp://*/*
 // @include file:///*
 // @require jquery-1.8.2.min.js
-// @require codemirror.js
-// @require matchbrackets.js
-// @require continuecomment.js
-// @require javascript.js
+// @require jsoneditor.min.js
 // ==/UserScript==
 var $ = window.$.noConflict(true); // Required for Opera and IE
 
@@ -42,9 +39,11 @@ function extractData(rawText) {
 	}
 }
 
-var refreshJSON = function(){
+var refreshJSON = function(ev, type){
 	var settings = {
-		success: updateEditor,
+		success: function(err, data, res){
+			updateEditor(err, data, res, type || 'update');
+		},
 		url: document.URL,
 		type: 'GET'
 	};
@@ -52,7 +51,19 @@ var refreshJSON = function(){
     cur_request = $.ajax(settings);
 };
 
-function updateEditor(err, data, res){
+function setError(text, err){
+	var errors = $("#errors");
+	var cl = 'updated';
+	if(err){
+		cl += '_err';
+	}
+	errors.html(text).addClass('updated');
+	setTimeout(function(){
+		errors.removeClass('updated');
+	}, 2000);
+}
+
+function updateEditor(err, data, res, type){
 	if(res.status == 200){
 		var headers = cur_request.getAllResponseHeaders();
 
@@ -69,29 +80,17 @@ function updateEditor(err, data, res){
 		cur_links = res.getResponseHeader('Link');
 
 		var parsed = JSON.parse(res.responseText);
-		editor.setValue(JSON.stringify(parsed, null, 4));
+		editor.set(parsed);
 
-		$("#errors").html('Last save ' + new Date());
+		setError('Last ' + type + ' ' + new Date());
 	}
 	else if(res.status == 304){
-		$("#errors").html('Not modified');
-	}
-}
-
-function formatJSON(){
-	var curJSON = editor.getValue();
-
-	try{
-		var parsed = JSON.parse(curJSON);
-		editor.setValue(JSON.stringify(parsed, null, 4));
-	}
-	catch(err){
-		$("#errors").html('JSON parse error');
+		setError('Not modified');
 	}
 }
 
 function postDATA(){
-	var curJSON = editor.getValue();
+	var curJSON = editor.getText();
 	var stringifyedData;
 
 	try{
@@ -99,13 +98,15 @@ function postDATA(){
 		stringifyedData = JSON.stringify(parsedJSON);
 	}
 	catch(err){
-		$("#errors").html('Error while parse JSON');
+		setError('Error while parse JSON', true);
 		return;
 	}
 
 	var settings = {
 		contentType: "application/json",
-		success: refreshJSON,
+		success: function(){
+			refreshJSON(null, 'save');
+		},
 		url: document.URL,
 		data: stringifyedData,
 		type: 'PUT',
@@ -136,54 +137,49 @@ function getOptions(callback){
 	});
 }
 
-function showEditor(isRiak, dataText){
-	var html = '<textarea class="editor" id="editor">' + dataText + '</textarea><br/>';
-
-	if(isRiak === true){
-		html += '<button type="submit" id="update_json_data">Save</button>' +
-			'<button id="refresh_btn">Get data from RIAK</button>' +
-			'<button id="format_json">Format</button>';
-	}
-
+function showEditor(isRiak, dataText, editEnabled){
+	var html = '<div class="editor" id="editor" style="height: 95%"></div>';
 	html += '<div id="errors"></div>';
 
 	$('body').html(html);
 
-	$('#update_json_data').click(postDATA);
-	$('#refresh_btn').click(refreshJSON);
-	$('#format_json').click(formatJSON);
+	editor = new JSONEditor(
+		document.getElementById("editor"),
+		{mode: 'code', indentation: 4},
+		dataText
+	);
 
-	editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-		lineNumbers: true
-	});
+	var menu = $(editor.menu);
+	menu.find('.jsoneditor-format').hide();
+	menu.find('.jsoneditor-compact').hide();
+
+	if(!editEnabled){
+		editor.aceEditor.setReadOnly(true);
+	}
 
 	if(isRiak === true){
-		editor.setSize(null, '90%');
-		refreshJSON();
+		var save = document.createElement('button');
+		save.innerHTML = 'Save';
+		save.onclick = postDATA;
+		save.style.width = '100px';
+		save.style.background = '#18F776';
+		save.style.color ='#000';
+		save.style.fontWeight = 'bold';
+		var get = document.createElement('button');
+		get.innerHTML = 'Get data from RIAK';
+		get.onclick = refreshJSON;
+		get.style.width = '150px';
+		get.style.background = '#fff';
+		get.style.color ='#000';
+		menu.append(save);
+		menu.append(get);
 	}
 	else {
-		editor.setSize(null, '97%');
+		//editor.setSize(null, '97%');
 	}
 }
 
-function showFormated(isRiak, dataText){
-	var html = '<pre id="formatedJson">' + dataText + '</pre>';
-	html += '<div id="menu"><a id="showEditor" href="#">Editor</a>';
-
-	$('body').html(html);
-
-	$('#menu').css({
-		position: 'fixed',
-		top: '20px',
-		right: '20px'
-	});
-
-	$('#showEditor').click(function(){
-		showEditor(isRiak, dataText);
-	});
-}
-
-function load(options) {
+function load(content, options){
 	var child, data;
 
 	if(document.body && (document.body.childNodes[0] && document.body.childNodes[0].tagName == "PRE" ||
@@ -196,12 +192,12 @@ function load(options) {
 		var isRiak = document.location.pathname.indexOf(options.riakPath) === 0;
 
 		if(data || isNotFound){
-			var dataParsed;
+			$("<style />").html(content).appendTo("head");
+
 			var dataText;
 
 			if(!isNotFound){
-				dataParsed = JSON.parse(data.text);
-				dataText = JSON.stringify(dataParsed, null, 4);
+				dataText = JSON.parse(data.text);
 			}
 			else {
 				dataText = {notFount: true};
@@ -209,20 +205,23 @@ function load(options) {
 			}
 
 			if(options.isRiakEnabled === true && isRiak === true){
-				showEditor(isRiak, dataText);
+				showEditor(isRiak, dataText, true);
 			}
 			else {
-				showFormated(isRiak, dataText);
+				showEditor(isRiak, dataText, false);
 			}
 		}
 	}
 }
 
 setTimeout(function(){
-	kango.invokeAsync('kango.io.getExtensionFileContents', 'codemirror.css', function(content) {
-		$("<style />").html(content).appendTo("head");
+	kango.invokeAsync('kango.io.getExtensionFileContents', 'jsoneditor.min.css', function(content){
+		content = content.replace(/background[\-image]*:url\(img\/jsoneditor-icons\.svg\)[^;}]*[;]?/g, '');
+		content += '#editor div.jsoneditor-menu{text-align: center;}';
+		content += '#editor div.jsoneditor-menu>button{float: none;margin: 0 10px}';
+		content += '#errors{transition: all 3s;text-align: center;}#errors.updated{background: #18F776;}#errors.updated_err{background: rgb(251, 96, 85);}';
 		getOptions(function(options){
-			load(options);
+			load(content, options);
 		});
 	});
 }, 100);

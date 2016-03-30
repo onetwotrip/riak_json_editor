@@ -1,5 +1,12 @@
-﻿/*
-Built using Kango - Cross-browser extension framework
-http://kangoextensions.com/
-*/
-kango.Lang=function(){};kango.Lang.prototype=kango.oop.extend(kango.LangBase,{createHTMLSandbox:function(d,b){return b(window)},evalInSandbox:function(d,b,e){var c="",a;for(a in b)b.hasOwnProperty(a)&&("window"!=a&&"document"!=a)&&(c+="var "+a+'=api["'+a+'"];');eval("(function(){return function(api){"+c+e+"\n}})();").call(d,b)}});kango.lang=new kango.Lang;
+﻿"use strict";
+_kangoLoader.add("kango/lang", function(require, exports, module) {
+function LangBase(){}var NotImplementedException=require("kango/utils").NotImplementedException;LangBase.prototype={evalInSandbox:function(e,n){throw new NotImplementedException},evalScriptsInSandbox:function(e,n){for(var t="",o=0;o<n.length;o++){for(var r=0;r<n[o].requires.length;r++)t+=n[o].requires[r].text+"\n\n";t+=n[o].text+"\n\n"}return this.evalInSandbox(e,t)}};
+
+
+
+
+
+
+
+function Lang(){}var object=require("kango/utils").object;Lang.prototype=object.extend(LangBase,{createHTMLSandbox:function(e,n){return n(window)}}),module.exports=new Lang;
+});

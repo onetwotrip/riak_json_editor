@@ -1,6 +1,6 @@
 #/bin/sh
 
-python /home/roman/projects/kango-framework-latest/kango.py build ../riak_editor/
+python /home/iceg/GIT/test/kango/kango.py build ../riak_json_editor/
 
 rm update.zip
 

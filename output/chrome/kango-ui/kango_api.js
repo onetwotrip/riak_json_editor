@@ -1,8 +1,9 @@
-﻿(function(h){h.KangoAPI={_readyListeners:[],_readyFired:!1,createKangoProxy:function(a){var f=a.oop.createProxy(a),b=[];f.addMessageListener=function(c,d){if("opera"==a.browser.getName())var e=d,d=function(){var a;a:{try{a=""==document.location.href;break a}catch(c){}a=!0}a?g():e.apply(this,arguments)};return this.baseObject.addMessageListener(c,d)?(b.push({name:c,listener:d}),!0):!1};f.removeMessageListener=function(a,d){if(this.baseObject.removeMessageListener(a,d))for(var e=0;e<b.length;e++)if(b[e].name==
-a&&b[e].listener==d)return b.splice(e,1),!0;return!1};var g=function(){for(var c=0;c<b.length;c++)a.removeMessageListener(b[c].name,b[c].listener);b=[]};"undefined"!=typeof window.addEventListener?window.addEventListener("unload",function(){g()},!1):window.attachEvent("onunload",function(){g()});return f},onReady:function(a){this._readyFired?a():this._readyListeners.push(a)},closeWindow:function(){},fireReady:function(){for(var a=0;a<this._readyListeners.length;a++)this._readyListeners[a]();this._readyFired=
-!0}}})(window);
+﻿!function(n){function e(){var n=[],e=!1;this.onReady=function(i){e?i():n.push(i)},this.closeWindow=function(){},this.resizeWindow=function(n,e){},this.getBackgroundPage=function(){},this._fireReady=function(){var o=KangoAPI.getBackgroundPage();if(o){var t=KangoAPI._require("kango/utils").object;t.forEach(i(KangoAPI._require),function(n,e){window[e]=n})}for(var a=0;a<n.length;a++)n[a]();e=!0,delete this._fireReady,delete this._require,t&&t.freeze(this)}}var i=function(n){var e=n("kango/core").createApiInstance("popup");return"undefined"!=typeof window.addEventListener?window.addEventListener("unload",function(){e.clear()},!1):window.attachEvent("onunload",function(){e.clear()}),e.obj};n.KangoAPI=new e}(window);
 
 
-// Merged from /home/roman/projects/kango-framework-latest/src/js/chrome/kango-ui/kango_api.part.js
 
-window.addEventListener("DOMContentLoaded",function(){window.kango=KangoAPI.createKangoProxy(chrome.extension.getBackgroundPage().kango);KangoAPI.closeWindow=function(){window.close()};KangoAPI.fireReady()},!1);
+
+
+
+
+window.addEventListener("DOMContentLoaded",function(){var n=chrome.extension.getBackgroundPage()._kangoLoader.require;KangoAPI.getBackgroundPage=function(){return chrome.extension.getBackgroundPage()},KangoAPI.closeWindow=function(){window.close()},KangoAPI._require=function(e){return n(e)},KangoAPI._fireReady()},!1);
