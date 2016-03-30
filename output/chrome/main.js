@@ -201,7 +201,6 @@ function load(content, options){
 			}
 			else {
 				dataText = {notFount: true};
-				dataText = JSON.stringify(dataText, null, 4);
 			}
 
 			if(options.isRiakEnabled === true && isRiak === true){
