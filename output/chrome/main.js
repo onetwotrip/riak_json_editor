@@ -57,9 +57,9 @@ function setError(text, err){
 	if(err){
 		cl += '_err';
 	}
-	errors.html(text).addClass('updated');
+	errors.html(text).addClass(cl);
 	setTimeout(function(){
-		errors.removeClass('updated');
+		errors.removeClass(cl);
 	}, 2000);
 }
 
