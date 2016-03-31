@@ -44,6 +44,9 @@ var refreshJSON = function(ev, type){
 		success: function(err, data, res){
 			updateEditor(err, data, res, type || 'update');
 		},
+		error: function(err){
+			setError('Obtain error: ' + err.responseText, true);
+		},
 		url: document.URL,
 		type: 'GET'
 	};
@@ -107,6 +110,9 @@ function postDATA(){
 		success: function(){
 			refreshJSON(null, 'save');
 		},
+		error: function(err){
+			setError('Save error: ' + err.responseText, true);
+		},
 		url: document.URL,
 		data: stringifyedData,
 		type: 'PUT',
@@ -149,30 +155,33 @@ function showEditor(isRiak, dataText, editEnabled){
 		dataText
 	);
 
-	var menu = $(editor.menu);
-	menu.find('.jsoneditor-format').hide();
-	menu.find('.jsoneditor-compact').hide();
-
 	if(!editEnabled){
 		editor.aceEditor.setReadOnly(true);
 	}
 
 	if(isRiak === true){
-		var save = document.createElement('button');
-		save.innerHTML = 'Save';
-		save.onclick = postDATA;
-		save.style.width = '100px';
-		save.style.background = '#18F776';
-		save.style.color ='#000';
-		save.style.fontWeight = 'bold';
-		var get = document.createElement('button');
-		get.innerHTML = 'Get data from RIAK';
-		get.onclick = refreshJSON;
-		get.style.width = '150px';
-		get.style.background = '#fff';
-		get.style.color ='#000';
+		var menu = $(editor.menu);
+		menu.find('.jsoneditor-format').html('format').css({width: '45px', color: '#000'});
+		menu.find('.jsoneditor-compact').html('compact').css({width: '55px', color: '#000'});
+		var save = $('<button/>').html('Save').on('click', postDATA).addClass('center').css({
+			width: '100px',
+			background: '#18F776',
+			color: '#000',
+			fontWeight: 'bold'
+		});
+		var get = $('<button/>').html('Get data from RIAK').on('click', refreshJSON).addClass('center').css({
+			width: '150px',
+			background: '#fff',
+			color: '#000',
+		});
 		menu.append(save);
 		menu.append(get);
+		$(document).on('keydown', function(e){
+			if(e.ctrlKey && e.keyCode == 83){
+				postDATA();
+				return false;
+			}
+		});
 	}
 	else {
 		//editor.setSize(null, '97%');
@@ -192,6 +201,11 @@ function load(content, options){
 		var isRiak = document.location.pathname.indexOf(options.riakPath) === 0;
 
 		if(data || isNotFound){
+			content = content.replace(/background[\-image]*:url\(img\/jsoneditor-icons\.svg\)[^;}]*[;]?/g, '');
+			content += '#editor div.jsoneditor-menu{text-align: center;}';
+			content += '#editor div.jsoneditor-menu>button.center{float: none;margin: 0 10px}';
+			content += '#errors{transition: all 3s;text-align: center;}#errors.updated{background: #18F776;}#errors.updated_err{background: rgb(251, 96, 85);}';
+			content += 'body{margin: 0;}';
 			$("<style />").html(content).appendTo("head");
 
 			var dataText;
@@ -215,10 +229,6 @@ function load(content, options){
 
 setTimeout(function(){
 	kango.invokeAsync('kango.io.getExtensionFileContents', 'jsoneditor.min.css', function(content){
-		content = content.replace(/background[\-image]*:url\(img\/jsoneditor-icons\.svg\)[^;}]*[;]?/g, '');
-		content += '#editor div.jsoneditor-menu{text-align: center;}';
-		content += '#editor div.jsoneditor-menu>button{float: none;margin: 0 10px}';
-		content += '#errors{transition: all 3s;text-align: center;}#errors.updated{background: #18F776;}#errors.updated_err{background: rgb(251, 96, 85);}';
 		getOptions(function(options){
 			load(content, options);
 		});
