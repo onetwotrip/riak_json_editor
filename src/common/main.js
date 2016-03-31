@@ -176,6 +176,7 @@ function showEditor(isRiak, dataText, editEnabled){
 		});
 		menu.append(save);
 		menu.append(get);
+		refreshJSON();
 		$(document).on('keydown', function(e){
 			if(e.ctrlKey && e.keyCode == 83){
 				postDATA();
