@@ -4,7 +4,7 @@
     ], 
     "description": "Riak JSON editor fixed (original https://chrome.google.com/webstore/detail/riak-json-editor/eeponikjeljlngckgbekknkoncmljfbf)", 
     "creator": "z6sic6z", 
-    "framework_version": "1.7.9 e39b6ff2fcc8", 
+    "framework_version": "1.8.0 3dc957b83b36", 
     "version": "0.9.4", 
     "options_page": "options.html", 
     "framework_package_id": "dev", 
