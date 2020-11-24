@@ -4,5 +4,6 @@ certificates/chrome.pem
 
 output
 output/*
-
+.DS_Store
 src/common/key.pem
+*.zip

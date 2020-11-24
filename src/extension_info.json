@@ -1,0 +1,11 @@
+{
+    "content_scripts": [
+        "main.js"
+    ],
+    "description": "Let you edit riak database records from your browser window",
+    "framework_version": "1.8.0 3dc957b83b36",
+    "version": "0.10",
+    "framework_package_id": "dev",
+    "homepage": "https://github.com/onetwotrip/riak_json_editor",
+    "name": "Riak JSON editor OTT"
+}

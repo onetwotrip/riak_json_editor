@@ -1,9 +1,0 @@
-{
-  "description": "Riak JSON editor fixed (original https://chrome.google.com/webstore/detail/riak-json-editor/eeponikjeljlngckgbekknkoncmljfbf)", 
-  "creator": "z6sic6z",
-  "homepage": "https://github.com/romulka",
-  "version": "0.9.5",
-  "content_scripts": ["main.js"],
-  "options_page": "options.html",
-  "name": "Riak JSON editor (fixed)"
-}

@@ -1,0 +1,24 @@
+{
+   "background": {
+      "page": "background.html"
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "includes/content.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_start"
+   } ],
+   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+   "description": "Let you edit riak database records from your browser window",
+   "icons": {
+      "128": "icons/iconNew128.png",
+      "16": "icons/button.png",
+      "48": "icons/iconNew48.png"
+   },
+   "manifest_version": 2,
+   "name": "Riak JSON editor OTT",
+   "permissions": [ "http://*/*", "https://*/*"],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "0.11",
+   "web_accessible_resources": [ "res/*", "assets/*", "icons/*" ]
+}
