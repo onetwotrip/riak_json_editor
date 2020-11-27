@@ -387,7 +387,7 @@ function load(content) {
 
         // optimisations for display
         content = content.replace(/img\/jsoneditor-icons\.svg/g, kango.io.getResourceUrl('res/jsoneditor-icons.svg'));
-        content += `body{height:${window.innerHeight}px;font-family: droid sans mono, consolas, monospace, courier new, courier, sans-serif;font-size: 12px;}`;
+        content += `body{height:${window.innerHeight}px; margin: 0px; font-family: droid sans mono, consolas, monospace, courier new, courier, sans-serif;font-size: 12px;}`;
         content += `#editor .jsoneditor{height:${window.innerHeight}px; border: none; border-bottom: 1px solid #3883fa}`;
         content += '#editor div.jsoneditor-menu{text-align: center;box-shadow: inset 0px -1px 4px 1px #E0DCDC;border-bottom:none;background-color: rgb(235, 235, 235);}';
         content += '#editor div.jsoneditor-menu>button.center{float: none;margin: 2px 10px 0 10px;height: 28px;box-shadow: 0px 0px 2px 2px #D2D2D2;}';
