@@ -19,6 +19,6 @@
    "name": "Riak JSON editor OTT",
    "permissions": [ "http://*/*", "https://*/*"],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "0.11",
+   "version": "0.12",
    "web_accessible_resources": [ "res/*", "assets/*", "icons/*" ]
 }
