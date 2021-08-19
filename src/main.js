@@ -405,6 +405,7 @@ function load(content) {
         content += '#meta>ul>li>ol>li>input{width: 250px;}';
 
         $("<style />").html(content).appendTo("head");
+        $('head').append('<meta name="referrer" content="no-referrer"/>');
         content = null;
 
         $('body').html('<div id="meta"></div><div id="editor"></div><div id="messages"></div>');
