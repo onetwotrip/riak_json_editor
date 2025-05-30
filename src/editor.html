@@ -3,103 +3,8 @@
 <head>
     <meta charset="utf-8"/>
     <title>Riak JSON Editor</title>
+    <link href="editor.css" rel="stylesheet"/>
     <link href="jsoneditor.min.css" rel="stylesheet"/>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #main {
-            display: flex;
-            flex: 1;
-            min-height: 0;
-        }
-
-        #messages {
-            display: none;
-            padding: 10px;
-            font-family: sans-serif;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #messages .msg-text {
-            flex: 1;
-        }
-
-        #messages .msg-close {
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 0 8px;
-        }
-
-        #editor {
-            flex: 1;
-        }
-
-        #meta {
-            display: flex;
-            flex-direction: column;
-            width: 280px;
-            padding: 10px;
-            font-family: sans-serif;
-            background: #f0f0f0;
-            border-left: 1px solid #ddd;
-            min-height: 0;
-        }
-
-        #meta #buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        #meta button {
-            margin: 0;
-        }
-
-        #deleteBtn {
-            color: darkred;
-        }
-
-        /* Metadata field styling */
-        #meta .meta-field {
-            margin-bottom: 8px;
-        }
-
-        #meta .meta-field strong {
-            font-weight: bold;
-        }
-
-        #meta .meta-value {
-            margin-left: 12px;
-        }
-
-        #meta .link-field {
-            margin-bottom: 12px;
-        }
-
-        #meta .link-meta {
-            margin-left: 12px;
-        }
-
-        #meta #meta-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-    </style>
-    <script src="jquery-1.8.2.min.js"></script>
     <script src="jsoneditor.min.js"></script>
     <script id="template-meta" type="text/mustache">
         <div id="buttons">
@@ -126,6 +31,13 @@
             {{^id}}
               <pre>{{meta}}<br/>{{url}}</pre>
             {{/id}}
+            </div>
+          </div>
+          {{/links}}
+          {{^links}}
+          <div class="link-field">
+            <div class="link-meta">
+              <em>No links</em>
             </div>
           </div>
           {{/links}}

@@ -32,17 +32,21 @@ console.log('[Riak Editor Override] loaded for', location.href);
     return;
   }
 
-  // Inject editor parameters and patch relative resource URLs to absolute extension paths
-  const inlineScript = `<script>window.RIAK_EDITOR_PARAMS=${JSON.stringify({url: originalHref, isRiakEnabled, riakPath})};</script>`;
+  // Inject editor parameters via an external script and patch relative resource URLs to absolute extension paths
+  const paramsScriptUrl = browser.runtime.getURL(
+    `inject_params.js?url=${encodeURIComponent(originalHref)}` +
+    `&isRiakEnabled=${encodeURIComponent(isRiakEnabled)}` +
+    `&riakPath=${encodeURIComponent(riakPath)}`
+  );
   const patched = html
-    .replace(/<head>/, `<head>\n${inlineScript}`)
+    .replace(/<head>/, `<head>\n<script src="${paramsScriptUrl}"></script>`)
     .replace(/(src|href)="(.*?)"/g, (_, attr, value) => {
-    if (/^(https?:|\/\/|chrome-extension:)/.test(value)) {
-      return `${attr}="${value}"`;
-    }
-    const abs = browser.runtime.getURL(value);
-    return `${attr}="${abs}"`;
-  });
+      if (/^(https?:|\/\/|chrome-extension:)/.test(value)) {
+        return `${attr}="${value}"`;
+      }
+      const abs = browser.runtime.getURL(value);
+      return `${attr}="${abs}"`;
+    });
 
   // Overwrite the current document with the editor UI
   document.open();

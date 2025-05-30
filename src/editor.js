@@ -1,22 +1,6 @@
 const browser = window.browser ?? chrome;
 const Mustache = window.Mustache ?? window.mustache ?? mustache;
 
-const extractData = rawText => {
-    const text = rawText.trim();
-    const test = t =>
-        (t[0] === "[" && t[t.length - 1] === "]") ||
-        (t[0] === "{" && t[t.length - 1] === "}");
-
-    if (test(text)) {
-        return { text: rawText, offset: 0 };
-    }
-
-    const tokens = text.match(/^([^\\s\\(]*)\\s*\\(([\\s\\S]*)\\)\\s*;?$/);
-    if (tokens && test(tokens[2].trim())) {
-        return { fnName: tokens[1], text: tokens[2], offset: rawText.indexOf(tokens[2]) };
-    }
-};
-
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
@@ -67,8 +51,10 @@ async function loadAndRender(url) {
 }
 
 async function renderPage(resp) {
-    const data = extractData(resp.text);
-    if (!data) {
+    let data = null;
+    try {
+        data = JSON.parse(resp.text);
+    } catch (e) {
         showMessage("Response is not valid JSON", true);
         return;
     }
@@ -90,7 +76,7 @@ async function renderPage(resp) {
     const editor = new JSONEditor(
         editorEl,
         { mode: "code", indentation: 4 },
-        JSON.parse(data.text)
+        data,
     );
     const saveBtn = metaEl.querySelector("#saveBtn");
     const deleteBtn = metaEl.querySelector("#deleteBtn");
@@ -127,7 +113,7 @@ const parseLinkHeader = headerValue =>
             const url = urlPart.match(/^<(.*)>$/)[1];
 
             // Skip "up" links
-            // if (metaPart === 'rel="up"') return undefined;
+            if (metaPart === 'rel="up"') return undefined;
 
             // Parse meta as key-value
             let [key, value] = metaPart.split('=').map(s => s.trim());
