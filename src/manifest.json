@@ -35,5 +35,28 @@
        "128": "icons/iconNew128.png"
      },
      "default_title": "Riak JSON Editor"
-   }
+   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["override.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "editor.html",
+        "editor.js",
+        "jsoneditor.min.css",
+        "jsoneditor.min.js",
+        "jquery-1.8.2.min.js",
+        "mustache-3.2.1.min.js",
+        "res/*",
+        "icons/*",
+        "assets/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

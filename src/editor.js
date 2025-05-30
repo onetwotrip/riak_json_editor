@@ -20,16 +20,24 @@ const extractData = rawText => {
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    const { isRiakEnabled, riakPath } = await browser.storage.sync.get({
-        isRiakEnabled: true,
-        riakPath: "/riak/",
-    });
+    const params = new URLSearchParams(window.location.search);
+    let isRiakEnabled, riakPath;
+    if (params.has("isRiakEnabled") && params.has("riakPath")) {
+        isRiakEnabled = params.get("isRiakEnabled") === "true";
+        riakPath = params.get("riakPath");
+    } else {
+        const opts = await browser.storage.sync.get({
+            isRiakEnabled: true,
+            riakPath: "/riak/",
+        });
+        isRiakEnabled = opts.isRiakEnabled;
+        riakPath = opts.riakPath;
+    }
     if (!isRiakEnabled) {
         showMessage("Riak JSON Editor is disabled", true);
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
     const url = params.get("url");
     if (!url) {
         showMessage("No URL specified", true);
