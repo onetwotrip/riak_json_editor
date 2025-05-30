@@ -20,172 +20,297 @@ function extractData(rawText) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    browser.storage.sync.get({ isRiakEnabled: true, riakPath: "/riak/" }, function(options) {
-        if (!options.isRiakEnabled) {
-            showMessage("Riak JSON Editor is disabled", true);
-            return;
+/**
+ * Entry point: initialize the editor page once the DOM is ready.
+ */
+document.addEventListener("DOMContentLoaded", init);
+
+/**
+ * Main initialization: read options and start loading the Riak JSON.
+ */
+function init() {
+    browser.storage.sync.get(
+        { isRiakEnabled: true, riakPath: "/riak/" },
+        function(options) {
+            if (!options.isRiakEnabled) {
+                showMessage("Riak JSON Editor is disabled", true);
+                return;
+            }
+            var params = new URLSearchParams(window.location.search);
+            var url = params.get("url");
+            if (!url) {
+                showMessage("No URL specified", true);
+                return;
+            }
+            loadAndRender(url);
         }
-        var params = new URLSearchParams(window.location.search);
-        var url = params.get("url");
-        if (!url) {
-            showMessage("No URL specified", true);
-            return;
-        }
+    );
+}
 
-        fetch(url)
-            .then(function(res) {
-                var headers = res.headers;
-                return res.text().then(function(text) {
-                    return { text: text, headers: headers, status: res.status, statusText: res.statusText };
-                });
-            })
-            .then(function(resp) {
-                var data = extractData(resp.text);
-                if (!data) {
-                    showMessage("Response is not valid JSON", true);
-                    return;
-                }
-                document.body.innerHTML =
-                    '<div id="main">' +
-                        '<div id="editor"></div>' +
-                        '<div id="meta"></div>' +
-                    '</div>' +
-                    '<div id="messages"></div>';
-
-                var metaEl = document.getElementById("meta");
-                var btnRow = document.createElement("div");
-                btnRow.id = "buttons";
-                var saveBtn = document.createElement("button");
-                saveBtn.id = "saveBtn";
-                saveBtn.type = "button";
-                saveBtn.textContent = "Save";
-                btnRow.appendChild(saveBtn);
-                var deleteBtn = document.createElement("button");
-                deleteBtn.id = "deleteBtn";
-                deleteBtn.type = "button";
-                deleteBtn.textContent = "Delete";
-                btnRow.appendChild(deleteBtn);
-                metaEl.appendChild(btnRow);
-                var contentEl = document.createElement("div");
-                contentEl.id = "meta-content";
-                metaEl.appendChild(contentEl);
-
-                // Render metadata fields (bold labels, values on their own lines)
-                function appendField(name, value) {
-                    var fld = document.createElement("div");
-                    fld.className = "meta-field";
-                    var lbl = document.createElement("strong");
-                    lbl.textContent = name;
-                    fld.appendChild(lbl);
-                    var valEl = document.createElement("div");
-                    valEl.className = "meta-value";
-                    valEl.textContent = value;
-                    fld.appendChild(valEl);
-                    contentEl.appendChild(fld);
-                }
-                var etag = resp.headers.get("Etag") || resp.headers.get("ETag");
-                if (etag) appendField("ETag", etag);
-                var vclock = resp.headers.get("X-Riak-Vclock");
-                if (vclock) appendField("Vclock", vclock);
-                var len = resp.headers.get("Content-Length");
-                if (len) appendField("Length", len);
-                var lastMod = resp.headers.get("Last-Modified");
-                if (lastMod) appendField("Last-Modified", lastMod);
-                var link = resp.headers.get("Link");
-                if (link) {
-                    // Header label for links
-                    var linkHeader = document.createElement("div");
-                    linkHeader.className = "meta-field";
-                    var linkLbl = document.createElement("strong");
-                    linkLbl.textContent = "Link";
-                    linkHeader.appendChild(linkLbl);
-                    contentEl.appendChild(linkHeader);
-                    // Parse individual link entries into id + rest
-                    link.split(",").forEach(function(item) {
-                        var parts = item.trim().match(/^<([^>]+)>/);
-                        if (!parts) return;
-                        var urlValue = parts[1];
-                        // Strip /riak/ prefix, break path by slash
-                        var displayUrl = urlValue.replace(/^\/?riak\//, "");
-                        var segments = displayUrl.split("/");
-                        var idValue = segments.pop();
-                        var restPath = segments.join("/");
-                        var linkDiv = document.createElement("div");
-                        linkDiv.className = "link-field";
-                        var metaLine = document.createElement("div");
-                        metaLine.className = "link-meta";
-                        var strong = document.createElement("strong");
-                        strong.textContent = idValue;
-                        metaLine.appendChild(strong);
-                        if (restPath) {
-                            metaLine.appendChild(document.createTextNode(" (" + restPath + ")"));
-                        }
-                        linkDiv.appendChild(metaLine);
-                        contentEl.appendChild(linkDiv);
-                    });
-                }
-
-                var editor = new JSONEditor(
-                    document.getElementById("editor"),
-                    { mode: "code", indentation: 4 },
-                    JSON.parse(data.text)
-                );
-
-                saveBtn.addEventListener("click", function() {
-                    var updated = editor.get();
-                    var body;
-                    try {
-                        body = JSON.stringify(updated);
-                    } catch (e) {
-                        showMessage("Error serializing JSON: " + e, true);
-                        return;
-                    }
-                    var reqHeaders = { "Content-Type": "application/json" };
-                    var vclock = resp.headers.get("X-Riak-Vclock");
-                    if (vclock) {
-                        reqHeaders["X-Riak-Vclock"] = vclock;
-                    }
-                    var linkHeader = resp.headers.get("Link");
-                    if (linkHeader) {
-                        reqHeaders["Link"] = linkHeader;
-                    }
-                    fetch(url, {
-                        method: "PUT",
-                        headers: reqHeaders,
-                        body: body
-                    })
-                    .then(function(res) {
-                        if (res.ok) {
-                            showMessage("Saved successfully");
-                        } else {
-                            showMessage("Save failed: " + res.status + " " + res.statusText, true);
-                        }
-                    })
-                    .catch(function(err) {
-                        showMessage("Save error: " + err, true);
-                    });
-                });
-                deleteBtn.addEventListener("click", function() {
-                    if (!window.confirm("Are you sure you want to delete this object?")) return;
-                    fetch(url, { method: "DELETE" })
-                        .then(function(res) {
-                            if (res.ok) {
-                                showMessage("Deleted successfully");
-                            } else {
-                                showMessage("Delete failed: " + res.status + " " + res.statusText, true);
-                            }
-                        })
-                        .catch(function(err) {
-                            showMessage("Delete error: " + err, true);
-                        });
-                });
-            })
-            .catch(function(err) {
-                showMessage("Fetch error: " + err, true);
+/**
+ * Fetch the JSON resource and delegate to render.
+ * @param {string} url - the Riak JSON endpoint URL
+ */
+function loadAndRender(url) {
+    fetch(url)
+        .then(function(res) {
+            return res.text().then(function(text) {
+                return {
+                    text: text,
+                    headers: res.headers,
+                    status: res.status,
+                    statusText: res.statusText,
+                    url: url
+                };
             });
+        })
+        .then(function(resp) {
+            renderPage(resp);
+        })
+        .catch(function(err) {
+            showMessage("Fetch error: " + err, true);
+        });
+}
+
+/**
+ * Set up the UI and JSONEditor based on the fetched response.
+ * @param {Object} resp - the fetch response info object
+ */
+function renderPage(resp) {
+    var data = extractData(resp.text);
+    if (!data) {
+        showMessage("Response is not valid JSON", true);
+        return;
+    }
+
+    // Build skeleton: editor pane, sidebar, and message bar.
+    document.body.innerHTML =
+        '<div id="main">' +
+            '<div id="editor"></div>' +
+            '<div id="meta"></div>' +
+        '</div>' +
+        '<div id="messages"></div>';
+
+    var metaEl = document.getElementById("meta");
+    var editorEl = document.getElementById("editor");
+
+    // Buttons row (Save + Delete)
+    var buttons = createButtonRow();
+    metaEl.appendChild(buttons.row);
+
+    // Scrollable metadata container
+    var contentEl = document.createElement("div");
+    contentEl.id = "meta-content";
+    metaEl.appendChild(contentEl);
+
+    // Populate metadata fields and links
+    var metadata = parseMetadata(resp.headers);
+    renderMetadata(contentEl, metadata);
+
+    // Instantiate the JSONEditor
+    var editor = new JSONEditor(
+        editorEl,
+        { mode: "code", indentation: 4 },
+        JSON.parse(data.text)
+    );
+
+    // Wire up button actions
+    buttons.save.addEventListener("click", function() {
+        handleSave(editor, resp);
     });
-});
+    buttons.delete.addEventListener("click", function() {
+        handleDelete(resp.url);
+    });
+}
+
+/**
+ * Create and return the Save/Delete button row.
+ * @returns {{row:HTMLElement, save:HTMLButtonElement, delete:HTMLButtonElement}}
+ */
+function createButtonRow() {
+    var row = document.createElement("div");
+    row.id = "buttons";
+
+    var saveBtn = document.createElement("button");
+    saveBtn.id = "saveBtn";
+    saveBtn.type = "button";
+    saveBtn.textContent = "Save";
+    row.appendChild(saveBtn);
+
+    var deleteBtn = document.createElement("button");
+    deleteBtn.id = "deleteBtn";
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Delete";
+    row.appendChild(deleteBtn);
+
+    return { row: row, save: saveBtn, delete: deleteBtn };
+}
+
+/**
+ * Parse out standard headers and links into a metadata structure.
+ * @param {Headers} headers - fetch response headers
+ * @returns {Array} list of metadata entries
+ */
+function parseMetadata(headers) {
+    var entries = [];
+    var etag = headers.get("Etag") || headers.get("ETag");
+    if (etag) entries.push({ type: "field", name: "ETag", value: etag });
+
+    var vclock = headers.get("X-Riak-Vclock");
+    if (vclock) entries.push({ type: "field", name: "Vclock", value: vclock });
+
+    var len = headers.get("Content-Length");
+    if (len) entries.push({ type: "field", name: "Length", value: len });
+
+    var lastMod = headers.get("Last-Modified");
+    if (lastMod) entries.push({ type: "field", name: "Last-Modified", value: lastMod });
+
+    var linkHeader = headers.get("Link");
+    if (linkHeader) {
+        entries.push({ type: "links", links: parseLinkHeader(linkHeader) });
+    }
+    return entries;
+}
+
+/**
+ * Break a Link header into [{id, restPath}, ...].
+ * @param {string} headerValue - raw HTTP Link header
+ * @returns {Array}
+ */
+function parseLinkHeader(headerValue) {
+    return headerValue.split(",").reduce(function(acc, item) {
+        var m = item.trim().match(/^<([^>]+)>/);
+        if (!m) return acc;
+        var urlValue = m[1].replace(/^\/?riak\//, "");
+        var segments = urlValue.split("/");
+        var id = segments.pop();
+        var rest = segments.join("/");
+        acc.push({ id: id, rest: rest });
+        return acc;
+    }, []);
+}
+
+/**
+ * Render metadata entries (fields and links) into the sidebar content.
+ * @param {HTMLElement} container
+ * @param {Array} metadata - output of parseMetadata
+ */
+function renderMetadata(container, metadata) {
+    metadata.forEach(function(entry) {
+        if (entry.type === "field") {
+            appendField(container, entry.name, entry.value);
+        } else if (entry.type === "links") {
+            appendLinkSection(container, entry.links);
+        }
+    });
+}
+
+/**
+ * Append a single metadata field (label + value).
+ * @param {HTMLElement} container
+ * @param {string} name
+ * @param {string} value
+ */
+function appendField(container, name, value) {
+    var field = document.createElement("div");
+    field.className = "meta-field";
+
+    var lbl = document.createElement("strong");
+    lbl.textContent = name;
+    field.appendChild(lbl);
+
+    var valEl = document.createElement("div");
+    valEl.className = "meta-value";
+    valEl.textContent = value;
+    field.appendChild(valEl);
+
+    container.appendChild(field);
+}
+
+/**
+ * Append a block of Link entries under a Link label.
+ * @param {HTMLElement} container
+ * @param {Array} links - array of {id, rest}
+ */
+function appendLinkSection(container, links) {
+    var header = document.createElement("div");
+    header.className = "meta-field";
+    var lbl = document.createElement("strong");
+    lbl.textContent = "Link";
+    header.appendChild(lbl);
+    container.appendChild(header);
+
+    links.forEach(function(link) {
+        var linkDiv = document.createElement("div");
+        linkDiv.className = "link-field";
+
+        var metaLine = document.createElement("div");
+        metaLine.className = "link-meta";
+
+        var strong = document.createElement("strong");
+        strong.textContent = link.id;
+        metaLine.appendChild(strong);
+
+        if (link.rest) {
+            metaLine.appendChild(document.createTextNode(" (" + link.rest + ")"));
+        }
+        linkDiv.appendChild(metaLine);
+        container.appendChild(linkDiv);
+    });
+}
+
+/**
+ * Handler for Save button: PUT back the updated JSON + vclock + Link.
+ * @param {JSONEditor} editor
+ * @param {Object} resp - original fetch context (headers, url)
+ */
+function handleSave(editor, resp) {
+    var updated = editor.get();
+    var body;
+    try {
+        body = JSON.stringify(updated);
+    } catch (err) {
+        showMessage("Error serializing JSON: " + err, true);
+        return;
+    }
+
+    var headers = { "Content-Type": "application/json" };
+    var vclock = resp.headers.get("X-Riak-Vclock");
+    if (vclock) headers["X-Riak-Vclock"] = vclock;
+    var linkHdr = resp.headers.get("Link");
+    if (linkHdr) headers["Link"] = linkHdr;
+
+    fetch(resp.url, { method: "PUT", headers: headers, body: body })
+        .then(function(res) {
+            if (res.ok) {
+                showMessage("Saved successfully");
+            } else {
+                showMessage("Save failed: " + res.status + " " + res.statusText, true);
+            }
+        })
+        .catch(function(err) {
+            showMessage("Save error: " + err, true);
+        });
+}
+
+/**
+ * Handler for Delete button: confirm + DELETE request.
+ * @param {string} url
+ */
+function handleDelete(url) {
+    if (!window.confirm("Are you sure you want to delete this object?")) return;
+    fetch(url, { method: "DELETE" })
+        .then(function(res) {
+            if (res.ok) {
+                showMessage("Deleted successfully");
+            } else {
+                showMessage("Delete failed: " + res.status + " " + res.statusText, true);
+            }
+        })
+        .catch(function(err) {
+            showMessage("Delete error: " + err, true);
+        });
+}
 
 function showMessage(msg, isError) {
     var el = document.getElementById("messages");
