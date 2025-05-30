@@ -1,58 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <meta charset="utf-8"/>
-   <title>Riak JSON Editor</title>
-   <link rel="stylesheet" href="jsoneditor.min.css"/>
-  <style>
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; }
-    #main { display: flex; flex: 1; min-height: 0; }
-    #messages { display: none; padding: 10px; font-family: sans-serif; }
-    #editor { flex: 1; }
-    #meta { display: flex; flex-direction: column; width: 280px; padding: 10px; font-family: sans-serif; background: #f0f0f0; border-left: 1px solid #ddd; min-height: 0; }
-    #meta #buttons { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    #meta button { margin: 0; }
-    #deleteBtn { color: darkred; }
-    /* Metadata field styling */
-    #meta .meta-field { margin-bottom: 8px; }
-    #meta .meta-field strong { font-weight: bold; }
-    #meta .meta-value { margin-left: 12px; }
-    #meta .link-field { margin-bottom: 12px; }
-    #meta .link-meta { margin-left: 12px; }
-    #meta #meta-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
-  </style>
-   <script src="jquery-1.8.2.min.js"></script>
-   <script src="jsoneditor.min.js"></script>
-  <script id="template-meta" type="text/mustache">
-    <div id="buttons">
-      <button id="saveBtn" type="button">Save</button>
-      <button id="deleteBtn" type="button">Delete</button>
-    </div>
-    <div id="meta-content">
-      {{#fields}}
-      <div class="meta-field">
-        <strong>{{name}}</strong>
-        <div class="meta-value">{{value}}</div>
-      </div>
-      {{/fields}}
-      {{#links}}
-      <div class="link-field">
-        <div class="link-meta">
-          <strong>{{id}}</strong>{{#rest}} ({{rest}}){{/rest}}
+    <meta charset="utf-8"/>
+    <title>Riak JSON Editor</title>
+    <link href="jsoneditor.min.css" rel="stylesheet"/>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #messages {
+            display: none;
+            padding: 10px;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #messages .msg-text {
+            flex: 1;
+        }
+
+        #messages .msg-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        #editor {
+            flex: 1;
+        }
+
+        #meta {
+            display: flex;
+            flex-direction: column;
+            width: 280px;
+            padding: 10px;
+            font-family: sans-serif;
+            background: #f0f0f0;
+            border-left: 1px solid #ddd;
+            min-height: 0;
+        }
+
+        #meta #buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        #meta button {
+            margin: 0;
+        }
+
+        #deleteBtn {
+            color: darkred;
+        }
+
+        /* Metadata field styling */
+        #meta .meta-field {
+            margin-bottom: 8px;
+        }
+
+        #meta .meta-field strong {
+            font-weight: bold;
+        }
+
+        #meta .meta-value {
+            margin-left: 12px;
+        }
+
+        #meta .link-field {
+            margin-bottom: 12px;
+        }
+
+        #meta .link-meta {
+            margin-left: 12px;
+        }
+
+        #meta #meta-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    </style>
+    <script src="jquery-1.8.2.min.js"></script>
+    <script src="jsoneditor.min.js"></script>
+    <script id="template-meta" type="text/mustache">
+        <div id="buttons">
+          <button id="saveBtn" type="button">Save</button>
+          <button id="deleteBtn" type="button">Delete</button>
         </div>
-      </div>
-      {{/links}}
-    </div>
-  </script>
-  <script src="mustache-3.2.1.min.js"></script>
-   <script src="editor.js"></script>
+        <div id="meta-content">
+          {{#fields}}
+          <div class="meta-field">
+            <strong>{{name}}</strong>
+            <div class="meta-value">{{value}}</div>
+          </div>
+          {{/fields}}
+          <div class="meta-field">
+            <strong>Links</strong>
+          </div>
+          {{#links}}
+          <div class="link-field">
+            <div class="link-meta">
+            {{#id}}
+              <strong>{{meta}}</strong> ({{bucket}})<br/>
+              <a href="{{url}}" target="_blank">{{id}}</a>
+            {{/id}}
+            {{^id}}
+              <pre>{{meta}}<br/>{{url}}</pre>
+            {{/id}}
+            </div>
+          </div>
+          {{/links}}
+        </div>
+    </script>
+    <script src="mustache-3.2.1.min.js"></script>
+    <script src="editor.js"></script>
 </head>
 <body>
-  <div id="main">
+<div id="main">
     <div id="editor"></div>
     <div id="meta"></div>
-  </div>
-  <div id="messages"></div>
+</div>
+<div id="messages"></div>
 </body>
 </html>

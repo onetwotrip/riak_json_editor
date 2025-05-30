@@ -110,16 +110,28 @@ const parseMetadata = headers => {
 const parseLinkHeader = headerValue =>
     headerValue
         .split(",")
-        .map(item => item.trim().match(/^<([^>]+)>/))
-        .filter(m => m)
-        .map(m => {
-            const displayUrl = m[1].replace(/^\/?riak\//, "");
-            const segments = displayUrl.split("/");
-            const id = segments.pop();
-            const rest = segments.join("/");
-            return { id, rest };
-        });
+        .map(linkEntry => {
+            const [urlPart, metaPart] = linkEntry.split(";").map(s => s.trim())
+            const url = urlPart.match(/^<(.*)>$/)[1];
 
+            // Skip "up" links
+            // if (metaPart === 'rel="up"') return undefined;
+
+            // Parse meta as key-value
+            let [key, value] = metaPart.split('=').map(s => s.trim());
+            value = value.match(/^"(.*)"$/)[1];
+            const meta = key === 'riaktag' ? value : metaPart;
+
+            // Extract uuid4 from url
+            const bucketMatch = url.match(/\/?riak\/(.*)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
+            if (bucketMatch !== null) {
+                return { url, bucket: bucketMatch[1], id: bucketMatch[2], meta };
+            }
+
+            // Fallback: unknown pattern
+            return { url, meta };
+        })
+        .filter(Boolean);
 
 const handleSave = async (editor, resp) => {
     const updated = editor.get();
@@ -162,9 +174,21 @@ const handleDelete = async url => {
     }
 };
 
+let messageTimer;
+
+const hideMessage = () => {
+    const el = document.getElementById("messages");
+    el.style.display = "none";
+};
+
 const showMessage = (msg, isError = false) => {
     const el = document.getElementById("messages");
-    el.textContent = msg;
-    el.style.display = "block";
+    el.innerHTML = `<span class="msg-text">${msg}</span>` +
+                 `<button class="msg-close" type="button">&times;</button>`;
+    el.style.display = "flex";
     el.style.color = isError ? "red" : "";
+    const btn = el.querySelector(".msg-close");
+    btn.addEventListener("click", hideMessage);
+    if (messageTimer) clearTimeout(messageTimer);
+    messageTimer = setTimeout(hideMessage, 5000);
 };
