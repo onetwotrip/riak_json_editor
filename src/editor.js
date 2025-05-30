@@ -67,6 +67,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 deleteBtn.textContent = "Delete";
                 btnRow.appendChild(deleteBtn);
                 metaEl.appendChild(btnRow);
+                var contentEl = document.createElement("div");
+                contentEl.id = "meta-content";
+                metaEl.appendChild(contentEl);
 
                 // Render metadata fields (bold labels, values on their own lines)
                 function appendField(name, value) {
@@ -79,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     valEl.className = "meta-value";
                     valEl.textContent = value;
                     fld.appendChild(valEl);
-                    metaEl.appendChild(fld);
+                    contentEl.appendChild(fld);
                 }
                 var etag = resp.headers.get("Etag") || resp.headers.get("ETag");
                 if (etag) appendField("ETag", etag);
@@ -97,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     var linkLbl = document.createElement("strong");
                     linkLbl.textContent = "Link";
                     linkHeader.appendChild(linkLbl);
-                    metaEl.appendChild(linkHeader);
+                    contentEl.appendChild(linkHeader);
                     // Parse individual link entries into id + rest
                     link.split(",").forEach(function(item) {
                         var parts = item.trim().match(/^<([^>]+)>/);
@@ -119,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             metaLine.appendChild(document.createTextNode(" (" + restPath + ")"));
                         }
                         linkDiv.appendChild(metaLine);
-                        metaEl.appendChild(linkDiv);
+                        contentEl.appendChild(linkDiv);
                     });
                 }
 
