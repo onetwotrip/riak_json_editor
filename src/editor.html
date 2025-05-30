@@ -24,6 +24,28 @@
   </style>
    <script src="jquery-1.8.2.min.js"></script>
    <script src="jsoneditor.min.js"></script>
+  <script id="template-meta" type="text/mustache">
+    <div id="buttons">
+      <button id="saveBtn" type="button">Save</button>
+      <button id="deleteBtn" type="button">Delete</button>
+    </div>
+    <div id="meta-content">
+      {{#fields}}
+      <div class="meta-field">
+        <strong>{{name}}</strong>
+        <div class="meta-value">{{value}}</div>
+      </div>
+      {{/fields}}
+      {{#links}}
+      <div class="link-field">
+        <div class="link-meta">
+          <strong>{{id}}</strong>{{#rest}} ({{rest}}){{/rest}}
+        </div>
+      </div>
+      {{/links}}
+    </div>
+  </script>
+  <script src="mustache-3.2.1.min.js"></script>
    <script src="editor.js"></script>
 </head>
 <body>

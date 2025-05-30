@@ -1,4 +1,5 @@
 const browser = window.browser ?? chrome;
+const Mustache = window.Mustache ?? window.mustache ?? mustache;
 
 const extractData = rawText => {
     const text = rawText.trim();
@@ -70,60 +71,40 @@ async function renderPage(resp) {
 
     const metaEl = document.getElementById("meta");
     const editorEl = document.getElementById("editor");
-    const { row, saveBtn, deleteBtn } = createButtonRow();
-    metaEl.appendChild(row);
-
-    const contentEl = document.createElement("div");
-    contentEl.id = "meta-content";
-    metaEl.appendChild(contentEl);
-
-    renderMetadata(contentEl, parseMetadata(resp.headers));
+    const template = document.getElementById("template-meta").innerHTML;
+    const { fields, links } = parseMetadata(resp.headers);
+    metaEl.innerHTML = Mustache.render(template, { fields, links });
 
     const editor = new JSONEditor(
         editorEl,
         { mode: "code", indentation: 4 },
         JSON.parse(data.text)
     );
+    const saveBtn = metaEl.querySelector("#saveBtn");
+    const deleteBtn = metaEl.querySelector("#deleteBtn");
     saveBtn.addEventListener("click", () => handleSave(editor, resp));
     deleteBtn.addEventListener("click", () => handleDelete(resp.url));
 }
 
-const createButtonRow = () => {
-    const row = document.createElement("div");
-    row.id = "buttons";
-
-    const saveBtn = document.createElement("button");
-    saveBtn.id = "saveBtn";
-    saveBtn.type = "button";
-    saveBtn.textContent = "Save";
-    row.appendChild(saveBtn);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.id = "deleteBtn";
-    deleteBtn.type = "button";
-    deleteBtn.textContent = "Delete";
-    row.appendChild(deleteBtn);
-
-    return { row, saveBtn, deleteBtn };
-};
 
 const parseMetadata = headers => {
-    const entries = [];
+    const fields = [];
+    const links = [];
     const etag = headers.get("Etag") ?? headers.get("ETag");
-    if (etag) entries.push({ type: "field", name: "ETag", value: etag });
+    if (etag) fields.push({ name: "ETag", value: etag });
 
     const vclock = headers.get("X-Riak-Vclock");
-    if (vclock) entries.push({ type: "field", name: "Vclock", value: vclock });
+    if (vclock) fields.push({ name: "Vclock", value: vclock });
 
     const length = headers.get("Content-Length");
-    if (length) entries.push({ type: "field", name: "Length", value: length });
+    if (length) fields.push({ name: "Length", value: length });
 
     const lastModified = headers.get("Last-Modified");
-    if (lastModified) entries.push({ type: "field", name: "Last-Modified", value: lastModified });
+    if (lastModified) fields.push({ name: "Last-Modified", value: lastModified });
 
     const linkHeader = headers.get("Link");
-    if (linkHeader) entries.push({ type: "links", links: parseLinkHeader(linkHeader) });
-    return entries;
+    if (linkHeader) links.push(...parseLinkHeader(linkHeader));
+    return { fields, links };
 };
 
 const parseLinkHeader = headerValue =>
@@ -139,57 +120,6 @@ const parseLinkHeader = headerValue =>
             return { id, rest };
         });
 
-const renderMetadata = (container, metadata) => {
-    metadata.forEach(entry => {
-        if (entry.type === "field") {
-            appendField(container, entry.name, entry.value);
-        } else if (entry.type === "links") {
-            appendLinkSection(container, entry.links);
-        }
-    });
-};
-
-const appendField = (container, name, value) => {
-    const field = document.createElement("div");
-    field.className = "meta-field";
-
-    const lbl = document.createElement("strong");
-    lbl.textContent = name;
-    field.appendChild(lbl);
-
-    const valEl = document.createElement("div");
-    valEl.className = "meta-value";
-    valEl.textContent = value;
-    field.appendChild(valEl);
-
-    container.appendChild(field);
-};
-
-const appendLinkSection = (container, links) => {
-    const header = document.createElement("div");
-    header.className = "meta-field";
-    const lbl = document.createElement("strong");
-    lbl.textContent = "Link";
-    header.appendChild(lbl);
-    container.appendChild(header);
-
-    links.forEach(({ id, rest }) => {
-        const linkDiv = document.createElement("div");
-        linkDiv.className = "link-field";
-
-        const metaLine = document.createElement("div");
-        metaLine.className = "link-meta";
-
-        const strongEl = document.createElement("strong");
-        strongEl.textContent = id;
-        metaLine.appendChild(strongEl);
-
-        if (rest) metaLine.appendChild(document.createTextNode(` (${rest})`));
-        linkDiv.appendChild(metaLine);
-
-        container.appendChild(linkDiv);
-    });
-};
 
 const handleSave = async (editor, resp) => {
     const updated = editor.get();

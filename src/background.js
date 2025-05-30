@@ -1,10 +1,10 @@
 // Background service worker for the extension.
 
-const browser = window.browser ?? chrome;
+const browserObj = typeof browser === "undefined" ? chrome : browser;
 
 // Action handler: open editor page when icon is clicked on a Riak JSON URL
-browser.action.onClicked.addListener(async tab => {
-    const { isRiakEnabled, riakPath } = await browser.storage.sync.get({
+browserObj.action.onClicked.addListener(async tab => {
+    const { isRiakEnabled, riakPath } = await browserObj.storage.sync.get({
         isRiakEnabled: true,
         riakPath: '/riak/',
     });
@@ -17,8 +17,8 @@ browser.action.onClicked.addListener(async tab => {
         return;
     }
 
-    browser.tabs.create({
-        url: `${browser.runtime.getURL('editor.html')}?url=${encodeURIComponent(tab.url)}`,
+    browserObj.tabs.create({
+        url: `${browserObj.runtime.getURL('editor.html')}?url=${encodeURIComponent(tab.url)}`,
         index: tab.index + 1,
     });
 });
