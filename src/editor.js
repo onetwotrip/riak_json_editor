@@ -47,18 +47,26 @@ document.addEventListener("DOMContentLoaded", function() {
                     return;
                 }
                 document.body.innerHTML =
-                    '<div id="messages"></div>' +
                     '<div id="main">' +
                         '<div id="editor"></div>' +
                         '<div id="meta"></div>' +
-                    '</div>';
+                    '</div>' +
+                    '<div id="messages"></div>';
 
                 var metaEl = document.getElementById("meta");
+                var btnRow = document.createElement("div");
+                btnRow.id = "buttons";
                 var saveBtn = document.createElement("button");
                 saveBtn.id = "saveBtn";
                 saveBtn.type = "button";
                 saveBtn.textContent = "Save";
-                metaEl.appendChild(saveBtn);
+                btnRow.appendChild(saveBtn);
+                var deleteBtn = document.createElement("button");
+                deleteBtn.id = "deleteBtn";
+                deleteBtn.type = "button";
+                deleteBtn.textContent = "Delete";
+                btnRow.appendChild(deleteBtn);
+                metaEl.appendChild(btnRow);
 
                 // Render metadata fields (bold labels, values on their own lines)
                 function appendField(name, value) {
@@ -154,6 +162,20 @@ document.addEventListener("DOMContentLoaded", function() {
                     .catch(function(err) {
                         showMessage("Save error: " + err, true);
                     });
+                });
+                deleteBtn.addEventListener("click", function() {
+                    if (!window.confirm("Are you sure you want to delete this object?")) return;
+                    fetch(url, { method: "DELETE" })
+                        .then(function(res) {
+                            if (res.ok) {
+                                showMessage("Deleted successfully");
+                            } else {
+                                showMessage("Delete failed: " + res.status + " " + res.statusText, true);
+                            }
+                        })
+                        .catch(function(err) {
+                            showMessage("Delete error: " + err, true);
+                        });
                 });
             })
             .catch(function(err) {
