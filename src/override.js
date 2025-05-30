@@ -5,6 +5,7 @@ console.log('[Riak Editor Override] loaded for', location.href);
 
 (async () => {
   console.log('[Riak Editor Override] starting override logic for', location.href);
+  const originalHref = location.href;
   const { isRiakEnabled, riakPath } = await browser.storage.sync.get({
     isRiakEnabled: true,
     riakPath: '/riak/',
@@ -19,12 +20,8 @@ console.log('[Riak Editor Override] loaded for', location.href);
     return;
   }
 
-  // Fetch the extension's editor.html (including the URL param) and rewrite the document
-  const editorQuery =
-    `editor.html?url=${encodeURIComponent(location.href)}` +
-    `&isRiakEnabled=${encodeURIComponent(isRiakEnabled)}` +
-    `&riakPath=${encodeURIComponent(riakPath)}`;
-  const editorHtmlUrl = browser.runtime.getURL(editorQuery);
+  // Fetch the extension's editor.html and rewrite the document
+  const editorHtmlUrl = browser.runtime.getURL('editor.html');
   console.log('[Riak Editor Override] fetching editor.html from', editorHtmlUrl);
   let html;
   try {
@@ -35,8 +32,11 @@ console.log('[Riak Editor Override] loaded for', location.href);
     return;
   }
 
-  // Patch relative resource URLs to absolute extension paths
-  const patched = html.replace(/(src|href)="(.*?)"/g, (_, attr, value) => {
+  // Inject editor parameters and patch relative resource URLs to absolute extension paths
+  const inlineScript = `<script>window.RIAK_EDITOR_PARAMS=${JSON.stringify({url: originalHref, isRiakEnabled, riakPath})};</script>`;
+  const patched = html
+    .replace(/<head>/, `<head>\n${inlineScript}`)
+    .replace(/(src|href)="(.*?)"/g, (_, attr, value) => {
     if (/^(https?:|\/\/|chrome-extension:)/.test(value)) {
       return `${attr}="${value}"`;
     }
@@ -48,8 +48,5 @@ console.log('[Riak Editor Override] loaded for', location.href);
   document.open();
   document.write(patched);
   document.close();
-  // Update the address bar to include the extension query parameters
-  const qs = editorQuery.slice(editorQuery.indexOf('?'));
-  window.history.replaceState(null, '', location.pathname + qs + location.hash);
   console.log('[Riak Editor Override] page rewrite complete');
 })();

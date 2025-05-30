@@ -20,27 +20,31 @@ const extractData = rawText => {
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    const params = new URLSearchParams(window.location.search);
-    let isRiakEnabled, riakPath;
-    if (params.has("isRiakEnabled") && params.has("riakPath")) {
-        isRiakEnabled = params.get("isRiakEnabled") === "true";
-        riakPath = params.get("riakPath");
+    let url, isRiakEnabled, riakPath;
+    if (window.RIAK_EDITOR_PARAMS) {
+        ({url, isRiakEnabled, riakPath} = window.RIAK_EDITOR_PARAMS);
     } else {
-        const opts = await browser.storage.sync.get({
-            isRiakEnabled: true,
-            riakPath: "/riak/",
-        });
-        isRiakEnabled = opts.isRiakEnabled;
-        riakPath = opts.riakPath;
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('isRiakEnabled') && params.has('riakPath') && params.has('url')) {
+            isRiakEnabled = params.get('isRiakEnabled') === 'true';
+            riakPath = params.get('riakPath');
+            url = params.get('url');
+        } else {
+            const opts = await browser.storage.sync.get({
+                isRiakEnabled: true,
+                riakPath: '/riak/',
+            });
+            isRiakEnabled = opts.isRiakEnabled;
+            riakPath = opts.riakPath;
+            url = params.get('url');
+        }
     }
     if (!isRiakEnabled) {
-        showMessage("Riak JSON Editor is disabled", true);
+        showMessage('Riak JSON Editor is disabled', true);
         return;
     }
-
-    const url = params.get("url");
     if (!url) {
-        showMessage("No URL specified", true);
+        showMessage('No URL specified', true);
         return;
     }
     await loadAndRender(url);
