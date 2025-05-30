@@ -1,22 +1,25 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const enabledCheckbox = document.getElementById('enabled');
-  const riakPathInput = document.getElementById('riak_path');
-  const status = document.getElementById('status');
+const browser = window.browser ?? chrome;
 
-  chrome.storage.sync.get(['options'], function(result) {
-    const options = result.options || { isRiakEnabled: true, riakPath: '/riak/' };
-    enabledCheckbox.checked = !!options.isRiakEnabled;
-    riakPathInput.value = options.riakPath;
-  });
+document.addEventListener('DOMContentLoaded', async () => {
+    const enabledCheckbox = document.getElementById('enabled');
+    const riakPathInput = document.getElementById('riak_path');
+    const status = document.getElementById('status');
 
-  document.getElementById('saveBtn').addEventListener('click', function() {
-    const options = {
-      isRiakEnabled: enabledCheckbox.checked,
-      riakPath: riakPathInput.value
-    };
-    chrome.storage.sync.set({ options: options }, function() {
-      status.textContent = 'Options saved.';
-      setTimeout(function() { status.textContent = ''; }, 2000);
+    const { options: savedOptions = { isRiakEnabled: true, riakPath: '/riak/' } } =
+        await browser.storage.sync.get('options');
+    const { isRiakEnabled, riakPath } = savedOptions;
+    enabledCheckbox.checked = isRiakEnabled;
+    riakPathInput.value = riakPath;
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+        const options = {
+            isRiakEnabled: enabledCheckbox.checked,
+            riakPath: riakPathInput.value,
+        };
+        await browser.storage.sync.set({ options });
+        status.textContent = 'Options saved.';
+        setTimeout(() => {
+            status.textContent = '';
+        }, 2000);
     });
-  });
 });
