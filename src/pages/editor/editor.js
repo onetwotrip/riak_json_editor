@@ -1,6 +1,9 @@
 const browser = window.browser ?? chrome;
 const Mustache = window.Mustache ?? window.mustache ?? mustache;
 
+const templateMeta = document.getElementById("template-meta").innerHTML;
+const templateMessage = document.getElementById("template-message").innerHTML;
+
 document.addEventListener("DOMContentLoaded", init);
 
 /**
@@ -71,9 +74,8 @@ async function renderPage(resp) {
 
     const metaEl = document.getElementById("meta");
     const editorEl = document.getElementById("editor");
-    const template = document.getElementById("template-meta").innerHTML;
     const { fields, links } = parseMetadata(resp.headers);
-    metaEl.innerHTML = Mustache.render(template, { fields, links, origin: resp.origin });
+    metaEl.innerHTML = Mustache.render(templateMeta, { fields, links, origin: resp.origin });
 
     const editor = new JSONEditor(
         editorEl,
@@ -216,12 +218,11 @@ const hideMessage = () => {
  */
 const showMessage = (msg, isError = false) => {
     const el = document.getElementById("messages");
-    el.innerHTML = `<span class="msg-text">${msg}</span>` +
-                 `<button class="msg-close" type="button">&times;</button>`;
-    el.style.display = "flex";
-    el.style.color = isError ? "red" : "";
-    const btn = el.querySelector(".msg-close");
+    el.outerHTML = Mustache.render(templateMessage, { message: msg, isError });
+
+    const btn = document.querySelector("#messages .msg-close");
     btn.addEventListener("click", hideMessage);
+
     if (messageTimer) clearTimeout(messageTimer);
     messageTimer = setTimeout(hideMessage, 5000);
 };

@@ -43,6 +43,12 @@
           {{/links}}
         </div>
     </script>
+    <script id="template-message" type="text/mustache">
+        <div id="messages" style="display: flex;{{#isError}} color: red;{{/isError}}">
+            <span class="msg-text">{{message}}</span>
+            <button class="msg-close" type="button">&times;</button>
+        </div>
+    </script>
     <script src="/vendor/mustache-3.2.1.min.js"></script>
     <script src="/pages/editor/editor.js"></script>
 </head>

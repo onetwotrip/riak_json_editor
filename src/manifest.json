@@ -5,7 +5,7 @@
    "content_security_policy": {
      "extension_pages": "script-src 'self'; object-src 'self'"
    },
-   "description": "Let you edit riak database records from your browser window",
+   "description": "Lets you edit Riak database records from your browser window",
    "icons": {
      "16": "icons/icon16.png",
      "19": "icons/icon19.png",
