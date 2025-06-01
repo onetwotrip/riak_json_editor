@@ -22,12 +22,14 @@ async function loadAndRender(url) {
     try {
         const res = await fetch(url);
         const text = await res.text();
+        const origin = new URL(url).origin;
         await renderPage({
             text,
             headers: res.headers,
             status: res.status,
             statusText: res.statusText,
             url,
+            origin,
         });
     } catch (err) {
         showMessage(`Fetch error: ${err}`, true);
@@ -55,7 +57,7 @@ async function renderPage(resp) {
     const editorEl = document.getElementById("editor");
     const template = document.getElementById("template-meta").innerHTML;
     const { fields, links } = parseMetadata(resp.headers);
-    metaEl.innerHTML = Mustache.render(template, { fields, links });
+    metaEl.innerHTML = Mustache.render(template, { fields, links, origin: resp.origin });
 
     const editor = new JSONEditor(
         editorEl,
