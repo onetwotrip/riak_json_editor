@@ -7,9 +7,14 @@
    },
    "description": "Let you edit riak database records from your browser window",
    "icons": {
-      "128": "icons/iconNew128.png",
-      "16": "icons/button.png",
-      "48": "icons/iconNew48.png"
+     "16": "icons/button.png",
+     "19": "icons/icon19.png",
+     "24": "icons/icon24.png",
+     "32": "icons/icon32.png",
+     "48": "icons/icon48.png",
+     "64": "icons/icon64.png",
+     "128": "icons/icon128.png",
+     "256": "icons/icon256.png"
    },
    "manifest_version": 3,
    "name": "Riak JSON editor OTT",
@@ -31,8 +36,13 @@
    "action": {
      "default_icon": {
        "16": "icons/button.png",
-       "48": "icons/iconNew48.png",
-       "128": "icons/iconNew128.png"
+       "19": "icons/icon19.png",
+       "24": "icons/icon24.png",
+       "32": "icons/icon32.png",
+       "48": "icons/icon48.png",
+       "64": "icons/icon64.png",
+       "128": "icons/icon128.png",
+       "256": "icons/icon256.png"
      },
      "default_title": "Riak JSON Editor"
    },
