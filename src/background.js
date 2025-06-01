@@ -6,7 +6,7 @@ const browserObj = typeof browser === "undefined" ? chrome : browser;
 const DEFAULT_ENABLED_STATE = true;
 const ICON_PATHS = {
   enabled: {
-    16: 'icons/button.png',
+    16: 'icons/icon16.png',
     19: 'icons/icon19.png',     // Для старых версий Chrome
     24: 'icons/icon24.png',     // Для тулбара с высоким DPI
     32: 'icons/icon32.png',     // Для экранов с высоким разрешением
@@ -16,7 +16,7 @@ const ICON_PATHS = {
     256: 'icons/icon256.png'    // Для максимального качества и магазина расширений
   },
   disabled: {
-    16: 'icons/button-disabled.png',
+    16: 'icons/icon16-disabled.png',
     19: 'icons/icon19-disabled.png',
     24: 'icons/icon24-disabled.png',
     32: 'icons/icon32-disabled.png',

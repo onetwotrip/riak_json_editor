@@ -7,7 +7,7 @@
    },
    "description": "Let you edit riak database records from your browser window",
    "icons": {
-     "16": "icons/button.png",
+     "16": "icons/icon16.png",
      "19": "icons/icon19.png",
      "24": "icons/icon24.png",
      "32": "icons/icon32.png",
@@ -35,7 +35,7 @@
    },
    "action": {
      "default_icon": {
-       "16": "icons/button.png",
+       "16": "icons/icon16.png",
        "19": "icons/icon19.png",
        "24": "icons/icon24.png",
        "32": "icons/icon32.png",
