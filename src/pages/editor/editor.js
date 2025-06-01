@@ -3,6 +3,12 @@ const Mustache = window.Mustache ?? window.mustache ?? mustache;
 
 document.addEventListener("DOMContentLoaded", init);
 
+/**
+ * Инициализирует редактор при загрузке страницы.
+ * Получает URL из параметров и загружает соответствующий контент.
+ * @async
+ * @returns {Promise<void>}
+ */
 async function init() {
     let url;
     const params = new URLSearchParams(window.location.search);
@@ -18,6 +24,12 @@ async function init() {
     await loadAndRender(url);
 }
 
+/**
+ * Загружает данные по указанному URL и отображает их на странице.
+ * @async
+ * @param {string} url - URL для загрузки данных
+ * @returns {Promise<void>}
+ */
 async function loadAndRender(url) {
     try {
         const res = await fetch(url);
@@ -36,6 +48,18 @@ async function loadAndRender(url) {
     }
 }
 
+/**
+ * Рендерит страницу редактора с полученным JSON-объектом и метаданными.
+ * @async
+ * @param {Object} resp - Объект ответа
+ * @param {string} resp.text - Текст ответа
+ * @param {Headers} resp.headers - HTTP-заголовки ответа
+ * @param {number} resp.status - HTTP-статус ответа
+ * @param {string} resp.statusText - Текстовое описание HTTP-статуса
+ * @param {string} resp.url - URL, с которого был получен ответ
+ * @param {string} resp.origin - Источник URL
+ * @returns {Promise<void>}
+ */
 async function renderPage(resp) {
     let data = null;
     try {
@@ -45,14 +69,6 @@ async function renderPage(resp) {
         return;
     }
 
-    document.body.innerHTML = `
-        <div id="main">
-            <div id="editor"></div>
-            <div id="meta"></div>
-        </div>
-        <div id="messages"></div>
-    `;
-
     const metaEl = document.getElementById("meta");
     const editorEl = document.getElementById("editor");
     const template = document.getElementById("template-meta").innerHTML;
@@ -61,7 +77,7 @@ async function renderPage(resp) {
 
     const editor = new JSONEditor(
         editorEl,
-        { mode: "code", indentation: 4 },
+        { mode: "code", indentation: 2 },
         data,
     );
     const saveBtn = metaEl.querySelector("#saveBtn");
@@ -70,7 +86,13 @@ async function renderPage(resp) {
     deleteBtn.addEventListener("click", () => handleDelete(resp.url));
 }
 
-
+/**
+ * Извлекает метаданные из HTTP-заголовков.
+ * @param {Headers} headers - HTTP-заголовки ответа
+ * @returns {Object} Объект с полями и ссылками
+ * @returns {Array<{name: string, value: string}>} fields - Массив полей метаданных
+ * @returns {Array<Object>} links - Массив связанных объектов
+ */
 const parseMetadata = headers => {
     const fields = [];
     const links = [];
@@ -91,6 +113,12 @@ const parseMetadata = headers => {
     return { fields, links };
 };
 
+/**
+ * Разбирает заголовок Link в структурированные данные.
+ * @param {string} headerValue - Значение заголовка Link
+ * @returns {Array<Object>} Массив объектов с данными о связях
+ * @returns {Array<{url: string, bucket?: string, id?: string, meta: string}>} Данные о связях
+ */
 const parseLinkHeader = headerValue =>
     headerValue
         .split(",")
@@ -117,6 +145,13 @@ const parseLinkHeader = headerValue =>
         })
         .filter(Boolean);
 
+/**
+ * Обрабатывает сохранение отредактированного JSON-объекта.
+ * @async
+ * @param {JSONEditor} editor - Экземпляр редактора JSON
+ * @param {Object} resp - Объект с данными исходного ответа
+ * @returns {Promise<void>}
+ */
 const handleSave = async (editor, resp) => {
     const updated = editor.get();
     let body;
@@ -144,6 +179,12 @@ const handleSave = async (editor, resp) => {
     }
 };
 
+/**
+ * Обрабатывает удаление объекта.
+ * @async
+ * @param {string} url - URL объекта для удаления
+ * @returns {Promise<void>}
+ */
 const handleDelete = async url => {
     if (!confirm("Are you sure you want to delete this object?")) return;
     try {
@@ -160,11 +201,19 @@ const handleDelete = async url => {
 
 let messageTimer;
 
+/**
+ * Скрывает сообщение в интерфейсе.
+ */
 const hideMessage = () => {
     const el = document.getElementById("messages");
     el.style.display = "none";
 };
 
+/**
+ * Отображает сообщение пользователю.
+ * @param {string} msg - Текст сообщения
+ * @param {boolean} [isError=false] - Флаг ошибки, если true - сообщение будет красным
+ */
 const showMessage = (msg, isError = false) => {
     const el = document.getElementById("messages");
     el.innerHTML = `<span class="msg-text">${msg}</span>` +

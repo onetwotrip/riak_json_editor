@@ -1,6 +1,6 @@
 {
    "background": {
-      "service_worker": "background.js"
+      "service_worker": "/pages/background.js"
    },
    "content_security_policy": {
      "extension_pages": "script-src 'self'; object-src 'self'"
@@ -27,10 +27,10 @@
      "https://*/*"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "0.12",
+   "version": "3.0.0",
    "web_accessible_resources": [ "res/*", "assets/*", "icons/*" ],
    "options_ui": {
-     "page": "options.html",
+     "page": "/pages/options/options.html",
      "open_in_tab": false
    },
    "action": {
@@ -49,23 +49,16 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["override.js"],
+      "js": ["/pages/override.js"],
       "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "editor.css",
-        "editor.html",
-        "editor.js",
-        "jsoneditor.min.css",
-        "jsoneditor.min.js",
-        "mustache-3.2.1.min.js",
-        "override-params.js",
-        "res/*",
-        "icons/*",
-        "assets/*"
+        "pages/*",
+        "vendor/*",
+        "icons/*"
       ],
       "matches": ["<all_urls>"]
     }
