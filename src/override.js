@@ -13,6 +13,19 @@ const browser = window.browser ?? chrome;
     if (!loc.pathname.startsWith(riakPath)) return;
 
     const originalHref = window.location.href;
+
+    try {
+      const headRes = await fetch(originalHref, { method: 'HEAD' });
+      if (!headRes.ok) {
+        console.warn(
+          `[Riak Editor Override] skipping override: resource returned status ${headRes.status}`
+        );
+        return;
+      }
+    } catch (err) {
+      console.warn('[Riak Editor Override] error checking resource head', err);
+      return;
+    }
     const extensionBase = browser.runtime.getURL('');
     const editorPageUrl = browser.runtime.getURL('editor.html');
     const response = await fetch(editorPageUrl);
