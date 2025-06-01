@@ -52,7 +52,7 @@
         "jsoneditor.min.css",
         "jsoneditor.min.js",
         "mustache-3.2.1.min.js",
-        "inject_params.js",
+        "override-params.js",
         "res/*",
         "icons/*",
         "assets/*"

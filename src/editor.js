@@ -4,31 +4,15 @@ const Mustache = window.Mustache ?? window.mustache ?? mustache;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-    let url, isRiakEnabled, riakPath;
-    if (window.RIAK_EDITOR_PARAMS) {
-        ({url, isRiakEnabled, riakPath} = window.RIAK_EDITOR_PARAMS);
+    let url;
+    const params = new URLSearchParams(window.location.search);
+    if (window.RIAK_EDITOR_PARAMS && window.RIAK_EDITOR_PARAMS.url) {
+        url = window.RIAK_EDITOR_PARAMS.url;
     } else {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('isRiakEnabled') && params.has('riakPath') && params.has('url')) {
-            isRiakEnabled = params.get('isRiakEnabled') === 'true';
-            riakPath = params.get('riakPath');
-            url = params.get('url');
-        } else {
-            const opts = await browser.storage.sync.get({
-                isRiakEnabled: true,
-                riakPath: '/riak/',
-            });
-            isRiakEnabled = opts.isRiakEnabled;
-            riakPath = opts.riakPath;
-            url = params.get('url');
-        }
-    }
-    if (!isRiakEnabled) {
-        showMessage('Riak JSON Editor is disabled', true);
-        return;
+        url = params.get("url");
     }
     if (!url) {
-        showMessage('No URL specified', true);
+        showMessage("No URL specified", true);
         return;
     }
     await loadAndRender(url);
