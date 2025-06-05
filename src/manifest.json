@@ -1,24 +1,66 @@
 {
    "background": {
-      "page": "background.html"
+      "service_worker": "/pages/background.js"
    },
-   "content_scripts": [ {
-      "all_frames": true,
-      "js": [ "includes/content.js" ],
-      "matches": [ "http://*/*", "https://*/*" ],
-      "run_at": "document_start"
-   } ],
-   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-   "description": "Let you edit riak database records from your browser window",
+   "content_security_policy": {
+     "extension_pages": "script-src 'self'; object-src 'self'"
+   },
+   "description": "Lets you edit Riak database records from your browser window",
    "icons": {
-      "128": "icons/iconNew128.png",
-      "16": "icons/button.png",
-      "48": "icons/iconNew48.png"
+     "16": "icons/icon16.png",
+     "19": "icons/icon19.png",
+     "24": "icons/icon24.png",
+     "32": "icons/icon32.png",
+     "48": "icons/icon48.png",
+     "64": "icons/icon64.png",
+     "128": "icons/icon128.png",
+     "256": "icons/icon256.png"
    },
-   "manifest_version": 2,
+   "manifest_version": 3,
    "name": "Riak JSON editor OTT",
-   "permissions": [ "http://*/*", "https://*/*"],
+   "permissions": [
+     "storage",
+     "tabs"
+   ],
+   "host_permissions": [
+     "http://*/*",
+     "https://*/*"
+   ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "0.12",
-   "web_accessible_resources": [ "res/*", "assets/*", "icons/*" ]
+   "version": "3.0.0",
+   "web_accessible_resources": [ "res/*", "assets/*", "icons/*" ],
+   "options_ui": {
+     "page": "/pages/options/options.html",
+     "open_in_tab": false
+   },
+   "action": {
+     "default_icon": {
+       "16": "icons/icon16.png",
+       "19": "icons/icon19.png",
+       "24": "icons/icon24.png",
+       "32": "icons/icon32.png",
+       "48": "icons/icon48.png",
+       "64": "icons/icon64.png",
+       "128": "icons/icon128.png",
+       "256": "icons/icon256.png"
+     },
+     "default_title": "Riak JSON Editor"
+   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["/pages/override.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "pages/*",
+        "vendor/*",
+        "icons/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
